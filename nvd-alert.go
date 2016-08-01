@@ -13,7 +13,7 @@ import (
     "bytes"
 //    "strconv"
 //    "strings"
-    "encoding/json"
+//    "encoding/json"
     "html/template"
 //    "reflect"
 )
@@ -47,7 +47,7 @@ func QuerySqlite3(DbPass string, query string) []string {
 		err = rows.Scan(&cpe_name)
 		result = append(result,cpe_name)
 	}
-	// make unique slice
+	// make unique slice 
 	result = GetUniqueSlice(result)
     return result
 }
@@ -172,37 +172,7 @@ func getHtmlMailBody(cvesInfoDetail []map[string]interface {} ,target string ) s
     }
     
     body := buff.String()
-    fmt.Println(body)
     return body    
-}
-
-func getMailBody(cvesInfoDetail []map[string]interface {} ,target string ) string{
-    var score string
-    var cveId string
-    var summary string
-    var LastModified string
-
-    body := "This mail was sent by nvd-alert." + "\r\n" +
-            "\r\n" +
-            "The target of this mail is " + target + ". The new CVEs are as below.\r\n"  +
-            "\r\n"
-    
-    for i := 0; i < len(cvesInfoDetail); i++ {
-        cveId = cvesInfoDetail[i]["CveID"].(string)
-        score = fmt.Sprint(cvesInfoDetail[i]["Nvd"].(map[string]interface{})["Score"].(json.Number)) 
-        summary = fmt.Sprint(cvesInfoDetail[i]["Nvd"].(map[string]interface{})["Summary"].(string))
-        LastModified = fmt.Sprint(cvesInfoDetail[i]["Nvd"].(map[string]interface{})["LastModifiedDate"].(string))
-
-        body = body + 
-               "ID: " + cveId + "\r\n" +
-               "Score: " + score + "\r\n" +
-               "LastModifiedDate: " + LastModified + "\r\n" +
-               "URL: https://web.nvd.nist.gov/view/vuln/detail?vulnId=" + cveId + "\r\n" +
-               "Summary : \r\n" + summary + "\r\n" + "\r\n" 
-    }
-
-    return body
-        
 }
 
 func main() {
@@ -220,15 +190,19 @@ func main() {
     for i := 0; i < len(target); i++ {
         query = MakeQuery(target[i].(string))
     	cpes = QuerySqlite3(DbPass,query)
-
+        //fmt.Println(cpes)
         // 取得したcpes分の処理を実施
         cvesSlice = []string{} // スライスの初期化ってこれでいいのか？
+        //fmt.Println(cvesSlice)
         for j :=0; j < len(cpes); j++{
-            cvesInfo = getCveInfobyCpes(cpes[i])
-            
+            //fmt.Println("getCveInfobyCpes:" + cpes[j])
+            cvesInfo = getCveInfobyCpes(cpes[j])
+
             // cpesを使った取得したcveの一覧を作成
             for k := 0; k < len(cvesInfo); k++{
+                //fmt.Println(cvesInfo[k].(map[string]interface{})["CveID"].(string))
                 cvesSlice = append(cvesSlice,cvesInfo[k].(map[string]interface{})["CveID"].(string))
+                
             }
             cvesSlice = GetUniqueSlice(cvesSlice)
         }
