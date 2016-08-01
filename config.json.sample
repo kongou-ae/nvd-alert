@@ -1,0 +1,13 @@
+{
+    "DbPass":"./cve.sqlite3",
+    "target":[
+        "fortinet:fortios",
+        "pulsesecure:pulse_connect_secure"
+    ],
+    "Mail":{
+        "type":"SendGrid",
+        "apikey":"yourApiKey",
+        "fromAddress":"FromAddress(only one address)", 
+        "toAddress":"ToAdress(only one address)"
+    }
+}
