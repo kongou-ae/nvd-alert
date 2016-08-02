@@ -16,6 +16,8 @@ import (
 //    "encoding/json"
     "html/template"
 //    "reflect"
+    "time"
+    "regexp"
 )
 
 func LoadConfig(FilePass string) *simplejson.Json {
@@ -180,27 +182,29 @@ func main() {
     var cpes []string
     var cvesInfo []interface{}
     var cvesSlice []string
+    var cveInfoDetail map[string]interface {}
     var cvesInfoDetail []map[string]interface {}
     
 	config := LoadConfig("./config.json")
     DbPass := config.Get("DbPass").MustString()
     target := config.Get("target").MustArray()
+    UpdatePeriod := config.Get("UpdatePeriod").MustInt()
+    // forで回すとcpesごとに判断時間が変わってしまうので、ここで定義する
+    checkTime := time.Now().Add(-time.Duration(UpdatePeriod) * time.Second)
     
     // コンフィグに記載されているターゲット分の処理を実施
     for i := 0; i < len(target); i++ {
         query = MakeQuery(target[i].(string))
     	cpes = QuerySqlite3(DbPass,query)
-        //fmt.Println(cpes)
+
         // 取得したcpes分の処理を実施
         cvesSlice = []string{} // スライスの初期化ってこれでいいのか？
-        //fmt.Println(cvesSlice)
+
         for j :=0; j < len(cpes); j++{
-            //fmt.Println("getCveInfobyCpes:" + cpes[j])
             cvesInfo = getCveInfobyCpes(cpes[j])
 
             // cpesを使った取得したcveの一覧を作成
             for k := 0; k < len(cvesInfo); k++{
-                //fmt.Println(cvesInfo[k].(map[string]interface{})["CveID"].(string))
                 cvesSlice = append(cvesSlice,cvesInfo[k].(map[string]interface{})["CveID"].(string))
                 
             }
@@ -210,13 +214,18 @@ func main() {
         // 1つのターゲットに紐づくCVEの詳細を作成する
         cvesInfoDetail = make([]map[string]interface {},0) // スライスの初期化ってこれでいいのか？
         for l :=0; l < len(cvesSlice); l++{
-            cvesInfoDetail = append(cvesInfoDetail,getCveInfobyCve(cvesSlice[l]))
-        }
+            cveInfoDetail = getCveInfobyCve(cvesSlice[l])
+
+            rep := regexp.MustCompile(`.[0-9]+-[0-9]{2}:[0-9]{2}$`)
+            updateTime, _ := time.Parse("2006-01-02T15:04:05", rep.ReplaceAllString(cveInfoDetail["Nvd"].(map[string]interface{})["LastModifiedDate"].(string),""))
+
+            if updateTime.After(checkTime){
+                cvesInfoDetail = append(cvesInfoDetail,cveInfoDetail)
+                mailBody := getHtmlMailBody(cvesInfoDetail,target[i].(string))
         
-        mailBody := getHtmlMailBody(cvesInfoDetail,target[i].(string))
-
-        mailConfig,_ := config.Get("Mail").Map()
-        sendMailBySendGrid(mailConfig,mailBody,target[i].(string))
-
+                mailConfig,_ := config.Get("Mail").Map()
+                sendMailBySendGrid(mailConfig,mailBody,target[i].(string))
+            }
+        }
     }
 }
