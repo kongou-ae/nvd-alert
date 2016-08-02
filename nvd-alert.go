@@ -221,11 +221,15 @@ func main() {
 
             if updateTime.After(checkTime){
                 cvesInfoDetail = append(cvesInfoDetail,cveInfoDetail)
-                mailBody := getHtmlMailBody(cvesInfoDetail,target[i].(string))
-        
-                mailConfig,_ := config.Get("Mail").Map()
-                sendMailBySendGrid(mailConfig,mailBody,target[i].(string))
             }
         }
+        
+        // cvesInfoDetailに情報が入っていたら
+        if len(cvesInfoDetail) != 0 {
+            mailBody := getHtmlMailBody(cvesInfoDetail,target[i].(string))
+            mailConfig,_ := config.Get("Mail").Map()
+            sendMailBySendGrid(mailConfig,mailBody,target[i].(string))            
+        }
+
     }
 }
