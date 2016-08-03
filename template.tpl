@@ -2,7 +2,7 @@
 <h2>{{.Target}}</h2>
 <p>This mail was sent by nvd-alert. The new CVEs are as below.</p>
 {{ range .CvesInfoDetail }}
-    <table border=1>
+    <table border=1 style="margin-bottom:10px">
         <tr>
             <th>ID</th>
             <td>{{.CveID}}</td>
