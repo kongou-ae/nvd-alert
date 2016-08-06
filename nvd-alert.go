@@ -11,11 +11,13 @@ import (
 	"strings"
     "net/http"
     "bytes"
+    "flag"
 //    "strconv"
 //    "strings"
 //    "encoding/json"
     "html/template"
 //    "reflect"
+    "os"
     "time"
     "regexp"
 )
@@ -184,8 +186,16 @@ func main() {
     var cvesSlice []string
     var cveInfoDetail map[string]interface {}
     var cvesInfoDetail []map[string]interface {}
+    var optionC = flag.String("c","none","the path of config file")
     
-	config := LoadConfig("./config.json")
+    flag.Parse()
+    
+    if *optionC == "none" {
+        fmt.Println("must set config path by -c")
+        os.Exit(1)
+    }
+
+	config := LoadConfig(*optionC)
     DbPass := config.Get("DbPass").MustString()
     target := config.Get("target").MustArray()
     UpdatePeriod := config.Get("UpdatePeriod").MustInt()
