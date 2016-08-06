@@ -2,10 +2,11 @@
 Scripts for alerting the information of NVD
 
 - nvd-alert
+    - check the database of go-cve-dictionary's server by the cpes written in config file.
+    - if there is new CVE which corresponded to cpes, inform you.
 
 - nvd-alert-update
-
-### nvd-alert-cron
+    - update the database of go-cve-dictionary's server.
 
 ## Usage
 
