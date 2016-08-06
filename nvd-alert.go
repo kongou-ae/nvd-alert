@@ -238,7 +238,11 @@ func main() {
         if len(cvesInfoDetail) != 0 {
             mailBody := getHtmlMailBody(cvesInfoDetail,target[i].(string))
             mailConfig,_ := config.Get("Mail").Map()
-            sendMailBySendGrid(mailConfig,mailBody,target[i].(string))            
+            
+            // choise a method of sending mail
+            if mailConfig["type"] == "SendGrid" {
+                sendMailBySendGrid(mailConfig,mailBody,target[i].(string))            
+            }
         }
 
     }
